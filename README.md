@@ -5,6 +5,10 @@
 
 ## اجرا
 
+**همه‌چیز با یک دستور (محلی، SQLite):** `bash scripts/dev-all.sh /path/to/yekari_apps` — پوشه‌ای که
+`design-system`, `customer`, `courier`, `admin`, `corporate` را دارد. بک‌اند را اگر نباشد در `<apps>/back` کلون
+می‌کند، همه را به main به‌روز می‌کند، وابستگی‌ها و دادهٔ نمونه را نصب می‌کند و API، زمان‌بند و چهار اپ را بالا می‌آورد.
+
 ```bash
 composer install
 cp .env.example .env && php artisan key:generate
