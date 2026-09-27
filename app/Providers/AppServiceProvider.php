@@ -60,6 +60,10 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(10)->by('mobile:'.$r->input('mobile')),
         ]);
         RateLimiter::for('login', fn (Request $r) => Limit::perMinute(10)->by($r->ip()));
-        RateLimiter::for('api', fn (Request $r) => Limit::perMinute(120)->by($r->user()?->id ?: $r->ip()));
+        // اپ‌ها تا سوکت بیاید poll می‌کنند (پیک هر ۳ ثانیه، چت هر ۴ ثانیه) و پنل در هر
+        // بارگذاری ~۱۲ درخواست موازی دارد؛ سقف کاربرِ واردشده برای همین بالاتر است
+        RateLimiter::for('api', fn (Request $r) => $r->user()
+            ? Limit::perMinute(300)->by('u:'.$r->user()->id)
+            : Limit::perMinute(60)->by('ip:'.$r->ip()));
     }
 }
