@@ -23,21 +23,26 @@ return [
     ],
 
     'sms' => [
-        // log | crm — crm همان سرویس پیامک الگو‌محور پروژهٔ مرجع است
+        // log (فقط لاگ، توسعه) | asanak (وب‌سرویس مستقیم آسانک، مثل پروژهٔ مرجع)
         'driver' => env('SMS_DRIVER', 'log'),
-        'crm_url' => env('CRM_SERVICE_URL'),
-        'registrar' => env('SMS_REGISTRAR_ID'),
-        'patterns' => [
-            // شناسهٔ fk_smspatternusage در سرویس پیامک — همان پیش‌فرض‌های پروژهٔ مرجع:
-            // ۱۴ «کد ورود»، ۱۱ «کد تنظیم رمز جدید» (هر دو با #verificationcode#)
-            'otp' => (int) env('SMS_PATTERN_OTP', 14),
-            'password_reset' => (int) env('SMS_PATTERN_PASSWORD_RESET', 11),
+        'asanak' => [
+            'url' => env('ASANAK_SMS_URL', 'https://panel.asanak.com/webservice/v1rest/sendsms'),
+            'username' => env('ASANAK_SMS_USERNAME'),
+            'password' => env('ASANAK_SMS_PASSWORD'),
+            'source' => env('ASANAK_SMS_SOURCE'),
+            // عبارت لغو انتهای پیامک (مرجع: «لغو۱۱»)؛ خالی = بدون عبارت
+            'suffix' => env('ASANAK_SMS_SUFFIX', 'لغو۱۱'),
+        ],
+        // متن هر الگو؛ #کلید# با پارامترها پر می‌شود (همان parseMessage مرجع)
+        'templates' => [
+            'otp' => "کد ورود به یکاری\n#verificationcode#",
+            'password_reset' => "کاربر گرامی\nجهت تنظیم رمز جدید یکاری از کد زیر استفاده نمایید\n#verificationcode#",
         ],
     ],
 
     'payment' => [
         // zibal | zarinpal | fake
-        'gateway' => env('PAYMENT_GATEWAY', 'fake'),
+        'gateway' => env('PAYMENT_GATEWAY', 'zibal'),
         'zibal_merchant' => env('ZIBAL_MERCHANT'),
         'zarinpal_merchant' => env('ZARINPAL_MERCHANT'),
         /** اپ‌ها بعد از بازگشت از درگاه به این آدرس‌ها برمی‌گردند (?status=ok|cancel&tx=) */

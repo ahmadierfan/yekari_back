@@ -13,7 +13,7 @@ use App\Services\Payment\FakeGateway;
 use App\Services\Payment\PaymentGateway;
 use App\Services\Payment\ZarinpalGateway;
 use App\Services\Payment\ZibalGateway;
-use App\Services\Sms\CrmSmsSender;
+use App\Services\Sms\AsanakSmsSender;
 use App\Services\Sms\LogSmsSender;
 use App\Services\Sms\SmsSender;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(SmsSender::class, fn () => match (config('yekari.sms.driver')) {
-            'crm' => new CrmSmsSender,
+            'asanak' => new AsanakSmsSender,
             default => new LogSmsSender,
         });
 

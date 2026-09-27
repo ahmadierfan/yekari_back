@@ -63,7 +63,7 @@ php artisan schedule:work            # تخصیص پیک، انقضای سفار
 | `app/Services/WalletService.php` | تنها نویسندهٔ موجودی؛ قفل ردیف + دفتر تراکنش با موجودی بعد از هر حرکت |
 | `app/Services/DispatchService.php` | پیشنهاد به نزدیک‌ترین پیک آنلاین آزاد، یکی‌یکی با پنجرهٔ ۲۰ ثانیه |
 | `app/Services/PricingService.php` | برآورد تفکیک‌شده (خدمات + مسافت + انتظار − تخفیف)، کد تخفیف، تخفیف قراردادی |
-| `app/Services/Sms/` | `SmsSender` — درایور `crm` همان مسیر پیامک الگو‌محور پروژهٔ مرجع |
+| `app/Services/Sms/` | `SmsSender` — درایور `asanak`: ارسال مستقیم به وب‌سرویس آسانک، مثل پروژهٔ مرجع (متن الگوها در `config/yekari.php`) |
 | `app/Services/Payment/` | `PaymentGateway` — زیبال، زرین‌پال (v4 با verify)، و `fake` برای توسعه |
 | `app/Http/Resources/` | شکل JSON دقیقاً مطابق تایپ‌های `mock.ts` اپ‌ها (camelCase) |
 

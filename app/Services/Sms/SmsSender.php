@@ -2,7 +2,7 @@
 
 namespace App\Services\Sms;
 
-/** ارسال پیامک الگو‌محور. درایور با SMS_DRIVER انتخاب می‌شود (log | crm). */
+/** ارسال پیامک الگو‌محور. درایور با SMS_DRIVER انتخاب می‌شود (log | asanak). */
 interface SmsSender
 {
     /**
