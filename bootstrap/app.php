@@ -37,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
         ]);
         $middleware->throttleApi('api');
+        // API صفحهٔ ورود ندارد؛ بدون این، مهمانِ بدون هدر Accept به‌جای ۴۰۱ خطای ۵۰۰ (route login) می‌گیرد
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions) use ($error): void {
         $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*') || $request->expectsJson());

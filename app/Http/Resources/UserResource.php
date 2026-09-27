@@ -23,6 +23,8 @@ class UserResource extends JsonResource
             'onboarded' => (bool) $this->onboarded_at,
             'hasPassword' => (bool) $this->password,
             'memberSince' => $this->created_at?->toIso8601String(),
+            // «مأموریت‌های من» در پروفایل مشتری — فقط سفارش‌های تکمیل‌شده
+            'missions' => $this->orders()->where('status', 'completed')->count(),
             'roles' => $this->getRoleNames(),
             'permissions' => $this->when($this->isStaff(), fn () => $this->hasRole('super-admin')
                 ? Permissions::all()

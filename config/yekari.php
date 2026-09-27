@@ -40,6 +40,7 @@ return [
         /** اپ‌ها بعد از بازگشت از درگاه به این آدرس‌ها برمی‌گردند (?status=ok|cancel&tx=) */
         'return_urls' => [
             'customer' => env('CUSTOMER_APP_URL', 'http://localhost:3500').'/app/wallet',
+            'order' => env('CUSTOMER_APP_URL', 'http://localhost:3500').'/app/new/success',
             'corporate' => env('CORPORATE_APP_URL', 'http://localhost:3503').'/billing',
         ],
     ],
