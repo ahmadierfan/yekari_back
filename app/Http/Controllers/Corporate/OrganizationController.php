@@ -6,7 +6,6 @@ use App\Domain\Domain;
 use App\Domain\Period;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\OrderResource;
 use App\Models\CostCenter;
 use App\Models\Organization;
 use App\Models\OrganizationInvoice;
@@ -147,8 +146,19 @@ class OrganizationController extends Controller
     {
         $this->authorize('view', $organization);
 
-        return OrderResource::collection($organization->orders()->with(['customer', 'costCenter', 'courier.courierProfile'])
-            ->where('status', '!=', 'draft')->latest('id')->paginate(25));
+        // شکل فشرده، نه OrderResource: مدیر سازمان باید ببیند «کدام عضو» سفارش داده، ولی
+        // جزئیات پیک/کمیسیون مال او نیست
+        $page = $organization->orders()->with(['customer:id,name', 'costCenter:id,title'])
+            ->where('status', '!=', 'draft')->latest('id')->paginate(25);
+
+        return response()->json([
+            'data' => $page->getCollection()->map(fn ($o) => [
+                'id' => $o->id, 'code' => $o->code, 'type' => $o->mission_type, 'status' => $o->status,
+                'createdAt' => $o->created_at?->toIso8601String(), 'total' => $o->total(),
+                'member' => $o->customer?->name, 'costCenter' => $o->costCenter?->title,
+            ]),
+            'meta' => ['page' => $page->currentPage(), 'lastPage' => $page->lastPage(), 'total' => $page->total()],
+        ]);
     }
 
     /* ── فاکتور ────────────────────────────── */
