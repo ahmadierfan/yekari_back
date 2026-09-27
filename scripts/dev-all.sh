@@ -34,10 +34,13 @@ for d in design-system customer courier admin corporate back; do
   if [ -n "$(git -C "$repo" status --porcelain --untracked-files=no)" ]; then
     die "$d تغییر ذخیره‌نشده دارد؛ اول commit یا stash کن"
   fi
-  git -C "$repo" fetch -q origin main
+  # ریپو ممکن است چند remote داشته باشد (مثلاً گیت‌هاب + همگیت)؛ همیشه از گیت‌هاب بگیر
+  remote="$(git -C "$repo" remote -v | awk '/github\.com/ {print $1; exit}')"
+  [ -n "$remote" ] || die "$d هیچ remote گیت‌هابی ندارد"
+  git -C "$repo" fetch -q "$remote" main
   git -C "$repo" checkout -q main
-  git -C "$repo" merge -q --ff-only origin/main || die "$d با origin/main هم‌راستا نیست"
-  echo "  ✓ $d"
+  git -C "$repo" merge -q --ff-only "$remote/main" || die "$d با $remote/main هم‌راستا نیست"
+  echo "  ✓ $d ($remote)"
 done
 
 say "بک‌اند: نصب و دیتابیس"
