@@ -34,13 +34,14 @@ for d in design-system customer courier admin corporate back; do
   if [ -n "$(git -C "$repo" status --porcelain --untracked-files=no)" ]; then
     die "$d تغییر ذخیره‌نشده دارد؛ اول commit یا stash کن"
   fi
-  # ریپو ممکن است چند remote داشته باشد (مثلاً گیت‌هاب + همگیت)؛ همیشه از گیت‌هاب بگیر
-  remote="$(git -C "$repo" remote -v | awk '/github\.com/ {print $1; exit}')"
-  [ -n "$remote" ] || die "$d هیچ remote گیت‌هابی ندارد"
-  git -C "$repo" fetch -q "$remote" main
+  # ریپو ممکن است چند مقصد داشته باشد (مثلاً fetch از همگیت و push به گیت‌هاب روی یک
+  # remote)؛ همیشه مستقیم از آدرس گیت‌هاب بگیر، چه fetch باشد چه push
+  url="$(git -C "$repo" remote -v | awk '$2 ~ /github\.com/ {print $2; exit}')"
+  [ -n "$url" ] || die "$d هیچ آدرس گیت‌هابی در remote ها ندارد"
   git -C "$repo" checkout -q main
-  git -C "$repo" merge -q --ff-only "$remote/main" || die "$d با $remote/main هم‌راستا نیست"
-  echo "  ✓ $d ($remote)"
+  git -C "$repo" fetch -q "$url" main
+  git -C "$repo" merge -q --ff-only FETCH_HEAD || die "$d با main گیت‌هاب هم‌راستا نیست"
+  echo "  ✓ $d"
 done
 
 say "بک‌اند: نصب و دیتابیس"
