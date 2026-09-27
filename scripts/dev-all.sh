@@ -32,7 +32,7 @@ if ! command -v php >/dev/null || ! php_ok php; then
 fi
 command -v php >/dev/null && php_ok php || die "PHP 8.3 یا بالاتر پیدا نشد — کنار نسخهٔ فعلی نصبش کن: brew install php@8.4"
 
-for bin in git composer node npm; do
+for bin in git composer node npm lsof; do
   command -v "$bin" >/dev/null || die "$bin نصب نیست (مک: brew install $bin)"
 done
 echo "  PHP: $(php -r 'echo PHP_VERSION;') ($(command -v php))"
@@ -67,6 +67,10 @@ if [ ! -f .env ]; then
   perl -pi -e 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/; s/^(DB_(HOST|PORT|DATABASE|USERNAME|PASSWORD)=)/# $1/' .env
   php artisan key:generate -q
 fi
+grep -q '^MAPIR_API_KEY=' .env || printf '\nMAPIR_API_KEY=\n' >> .env
+# همان کلید map.ir بک‌اند برای نقشهٔ پایهٔ اپ‌ها (خالی = کاشی OpenStreetMap)
+MAPIR_KEY="$(sed -n 's/^MAPIR_API_KEY=//p' .env | tr -d '"' | tail -1)"
+[ -n "$MAPIR_KEY" ] || echo "  ⚠ MAPIR_API_KEY در $BACK/.env خالی است — جست‌وجوی آدرس کار نمی‌کند و مسافت برآوردی است"
 touch database/database.sqlite
 php artisan migrate --seed --force -q
 php artisan storage:link -q 2>/dev/null || true
@@ -76,6 +80,21 @@ for d in design-system customer courier admin corporate; do
   (cd "$APPS/$d" && npm install --silent --no-audit --no-fund) && echo "  ✓ $d"
 done
 
+# پورت‌ها — اگر پروژهٔ دیگری روی ۸۰۰۰ باشد، `artisan serve` بی‌صدا به ۸۰۰۱ می‌رود ولی اپ‌ها
+# همچنان به ۸۰۰۰ (همان پروژهٔ دیگر) درخواست می‌دهند و «route could not be found» می‌گیرند.
+# پس خودمان پورت آزاد را پیدا می‌کنیم و همان را صریحاً به API و اپ‌ها می‌دهیم.
+port_owner() { lsof -nP -iTCP:"$1" -sTCP:LISTEN 2>/dev/null | awk 'NR==2 {print $1" (pid "$2")"}'; }
+for p in 3500 3501 3502 3503; do
+  owner="$(port_owner $p)"
+  [ -z "$owner" ] || die "پورت $p را $owner گرفته است؛ ببندش (kill ${owner##*pid }) و دوباره اجرا کن"
+done
+API_PORT="${YEKARI_API_PORT:-8000}"
+if [ -n "$(port_owner "$API_PORT")" ]; then
+  echo "  ⚠ پورت $API_PORT دست $(port_owner "$API_PORT") است؛ API روی پورت آزاد بعدی بالا می‌آید"
+  while [ -n "$(port_owner "$API_PORT")" ]; do API_PORT=$((API_PORT + 1)); done
+fi
+API="http://127.0.0.1:$API_PORT" # نه localhost: روی مک ممکن است به ::1 و سرور دیگری برسد
+
 PIDS=()
 cleanup() { say "بستن همه"; kill "${PIDS[@]}" 2>/dev/null || true; wait 2>/dev/null || true; }
 trap cleanup EXIT INT TERM
@@ -83,15 +102,15 @@ trap cleanup EXIT INT TERM
 LOGS="$APPS/.logs"
 mkdir -p "$LOGS"
 say "اجرا (لاگ‌ها در $LOGS)"
-(cd "$BACK" && php artisan serve --port=8000 >"$LOGS/api.log" 2>&1) & PIDS+=($!)
+(cd "$BACK" && APP_URL="$API" php artisan serve --host=127.0.0.1 --port="$API_PORT" >"$LOGS/api.log" 2>&1) & PIDS+=($!)
 (cd "$BACK" && php artisan schedule:work >"$LOGS/schedule.log" 2>&1) & PIDS+=($!)
 for d in customer courier admin corporate; do
-  (cd "$APPS/$d" && NUXT_PUBLIC_DEMO_OTP=12345 npm run dev >"$LOGS/$d.log" 2>&1) & PIDS+=($!)
+  (cd "$APPS/$d" && NUXT_PUBLIC_DEMO_OTP=12345 NUXT_PUBLIC_API_BASE="$API/api/v1" NUXT_PUBLIC_MAPIR_KEY="$MAPIR_KEY" npm run dev >"$LOGS/$d.log" 2>&1) & PIDS+=($!)
 done
 
-cat <<'EOF'
+cat <<EOF
 
-  API        http://localhost:8000
+  API        $API
   مشتری      http://localhost:3500   09121234567
   پیک        http://localhost:3501   09351112233
   مدیریت     http://localhost:3502   09121110000 (عملیات 09122220000، مالی 09123330000، پشتیبانی 09124440000)

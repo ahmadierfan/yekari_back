@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\PromoCode;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\Maps\MapirClient;
 
 /**
  * برآورد قیمت — تفکیک‌شده، هیچ‌وقت یک عدد مبهم (تصمیم DESIGN.md):
@@ -17,13 +18,22 @@ use App\Models\User;
  */
 class PricingService
 {
+    public function __construct(private MapirClient $mapir) {}
+
+    /** مسافت جاده‌ای map.ir؛ اگر نبود، خط مستقیم × road_factor */
+    public function distanceKm(array $from, array $to): float
+    {
+        return $this->mapir->roadKm($from['lat'], $from['lng'], $to['lat'], $to['lng'])
+            ?? round(Domain::haversine($from['lat'], $from['lng'], $to['lat'], $to['lng']) * config('yekari.road_factor'), 2);
+    }
+
     /**
      * @param  array{lat: float, lng: float}  $pickup
      * @param  array{lat: float, lng: float}|null  $dropoff
      */
     public function quote(MissionType $type, array $pickup, ?array $dropoff, ?string $promo = null, ?User $user = null, ?Organization $org = null): array
     {
-        $km = $dropoff ? round(Domain::haversine($pickup['lat'], $pickup['lng'], $dropoff['lat'], $dropoff['lng']) * config('yekari.road_factor'), 2) : 0.0;
+        $km = $dropoff ? $this->distanceKm($pickup, $dropoff) : 0.0;
         $service = (int) $type->base_fee;
         $distance = $dropoff ? (int) (round($type->per_km * $km / 1000) * 1000) : 0;
         $waiting = 0; // اضافه‌کاری فقط لحظهٔ تحویل و با زمان واقعی حساب می‌شود (missionOverage)
