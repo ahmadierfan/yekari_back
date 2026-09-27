@@ -29,7 +29,9 @@ class OtpService
         $len = (int) config('yekari.otp.length');
         $code = (string) random_int(10 ** ($len - 1), 10 ** $len - 1);
 
-        $result = $this->sms->sendPattern($mobile, 'otp', ['verificationcode' => $code]);
+        // بازیابی رمز الگوی جدای خودش را دارد (متن پیامک فرق می‌کند)؛ ورود و تغییر شماره همان «کد ورود»
+        $pattern = $purpose === 'password_reset' ? 'password_reset' : 'otp';
+        $result = $this->sms->sendPattern($mobile, $pattern, ['verificationcode' => $code]);
         if (! $result['success']) {
             throw new ApiException($result['message'] ?: 'ارسال پیامک ناموفق بود', 502);
         }

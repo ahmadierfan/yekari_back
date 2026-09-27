@@ -28,7 +28,10 @@ return [
         'crm_url' => env('CRM_SERVICE_URL'),
         'registrar' => env('SMS_REGISTRAR_ID'),
         'patterns' => [
+            // شناسهٔ fk_smspatternusage در سرویس پیامک — همان پیش‌فرض‌های پروژهٔ مرجع:
+            // ۱۴ «کد ورود»، ۱۱ «کد تنظیم رمز جدید» (هر دو با #verificationcode#)
             'otp' => (int) env('SMS_PATTERN_OTP', 14),
+            'password_reset' => (int) env('SMS_PATTERN_PASSWORD_RESET', 11),
         ],
     ],
 
