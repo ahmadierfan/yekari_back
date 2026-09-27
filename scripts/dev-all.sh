@@ -8,7 +8,8 @@
 # وابستگی‌ها نصب می‌شوند، دیتابیس SQLite محلی با دادهٔ نمونه ساخته می‌شود و
 # API + زمان‌بند + چهار اپ هم‌زمان بالا می‌آیند. Ctrl+C همه را می‌بندد.
 #
-# پیش‌نیاز: git, php >= 8.3 (با pdo_sqlite), composer, node >= 20, npm
+# پیش‌نیاز: git, php >= 8.3 (با pdo_sqlite؛ اگر PHP پیش‌فرض قدیمی‌تر است: brew install php@8.4
+# — کنارش نصب می‌شود و فقط همین اسکریپت از آن استفاده می‌کند), composer, node >= 20, npm
 set -euo pipefail
 
 APPS="$(cd "${1:-$PWD}" && pwd)"
@@ -18,10 +19,23 @@ BACK_REPO="https://github.com/ahmadierfan/yekari_back.git"
 say() { printf '\n\033[1;36m» %s\033[0m\n' "$*"; }
 die() { printf '\n\033[1;31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 
-for bin in git php composer node npm; do
-  command -v "$bin" >/dev/null || die "$bin نصب نیست (مک: brew install ${bin/composer/composer})"
+php_ok() { "$1" -r 'exit(version_compare(PHP_VERSION, "8.3", ">=") ? 0 : 1);' 2>/dev/null; }
+
+# PHP پیش‌فرض سیستم ممکن است قدیمی‌تر باشد (پروژه‌های دیگر به آن وابسته‌اند)؛ دست به آن
+# نمی‌زنیم و فقط داخل همین اسکریپت یک PHP 8.3+ نصب‌شده با brew را جلوی PATH می‌گذاریم.
+# نصب کنار نسخهٔ فعلی: brew install php@8.4   (keg-only؛ پیش‌فرض سیستم عوض نمی‌شود)
+if ! command -v php >/dev/null || ! php_ok php; then
+  for dir in ${YEKARI_PHP_DIR:-} /opt/homebrew/opt/php@8.4/bin /opt/homebrew/opt/php@8.3/bin /opt/homebrew/opt/php/bin \
+             /usr/local/opt/php@8.4/bin /usr/local/opt/php@8.3/bin /usr/local/opt/php/bin; do
+    if [ -x "$dir/php" ] && php_ok "$dir/php"; then export PATH="$dir:$PATH"; break; fi
+  done
+fi
+command -v php >/dev/null && php_ok php || die "PHP 8.3 یا بالاتر پیدا نشد — کنار نسخهٔ فعلی نصبش کن: brew install php@8.4"
+
+for bin in git composer node npm; do
+  command -v "$bin" >/dev/null || die "$bin نصب نیست (مک: brew install $bin)"
 done
-php -r 'exit(version_compare(PHP_VERSION, "8.3", ">=") ? 0 : 1);' || die "PHP 8.3 یا بالاتر لازم است (brew install php)"
+echo "  PHP: $(php -r 'echo PHP_VERSION;') ($(command -v php))"
 
 for d in design-system customer courier admin corporate; do
   [ -d "$APPS/$d/.git" ] || die "پوشهٔ $APPS/$d پیدا نشد یا ریپوی گیت نیست"
