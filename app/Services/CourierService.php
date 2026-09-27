@@ -61,9 +61,9 @@ class CourierService
 
         return [
             'balance' => (int) $wallet->balance,
-            'today_total' => $week->last()['amount'],
-            'bonus_today' => (int) $bonuses->sum('amount'),
-            'bonus_tiers' => Setting::get('bonus_tiers'),
+            'todayTotal' => $week->last()['amount'],
+            'bonusToday' => (int) $bonuses->sum('amount'),
+            'bonusTiers' => Setting::get('bonus_tiers'),
             'done' => $today->map(fn (Order $o) => [
                 'id' => $o->id, 'code' => $o->code, 'type' => $o->mission_type,
                 'at' => $o->finished_at?->toIso8601String(), 'payout' => (int) $o->courier_payout, 'tip' => (int) $o->tip ?: null,
