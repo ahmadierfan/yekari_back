@@ -7,6 +7,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Corporate\OrganizationController;
 use App\Http\Controllers\Courier;
 use App\Http\Controllers\Customer;
+use App\Http\Controllers\GeoController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TicketController;
@@ -45,6 +46,10 @@ Route::match(['get', 'post'], 'payment/callback/{gateway}', [PaymentController::
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('catalog', [CatalogController::class, 'bootstrap']);
+    Route::prefix('geo')->middleware('throttle:60,1')->group(function () {
+        Route::get('search', [GeoController::class, 'search']);
+        Route::get('reverse', [GeoController::class, 'reverse']);
+    });
 
     /* ── اپ مشتری ─────────────────────────────────── */
     Route::prefix('customer')->middleware('app:customer')->group(function () {

@@ -56,8 +56,17 @@ return [
     /** مالیات بر ارزش افزوده روی فاکتور سازمانی */
     'vat_percent' => (int) env('VAT_PERCENT', 10),
 
-    /** مسافت جاده‌ای ≈ مسافت خط مستقیم × این ضریب، تا وقتی سرویس مسیریابی وصل نشده */
+    /** مسافت جاده‌ای ≈ مسافت خط مستقیم × این ضریب — فقط وقتی مسیریابی map.ir در دسترس نیست */
     'road_factor' => 1.3,
+
+    'maps' => [
+        'mapir' => [
+            // کلید از پنل map.ir (corp.map.ir). بدون آن جست‌وجو/آدرس غیرفعال و مسافت برآوردی است
+            'key' => env('MAPIR_API_KEY'),
+            'url' => env('MAPIR_URL', 'https://map.ir'),
+            'timeout' => (int) env('MAPIR_TIMEOUT', 5),
+        ],
+    ],
 
     'offer_window_seconds' => 20,
     'dispatch_radius_km' => 8,

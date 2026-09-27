@@ -67,6 +67,10 @@ if [ ! -f .env ]; then
   perl -pi -e 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/; s/^(DB_(HOST|PORT|DATABASE|USERNAME|PASSWORD)=)/# $1/' .env
   php artisan key:generate -q
 fi
+grep -q '^MAPIR_API_KEY=' .env || printf '\nMAPIR_API_KEY=\n' >> .env
+# همان کلید map.ir بک‌اند برای نقشهٔ پایهٔ اپ‌ها (خالی = کاشی OpenStreetMap)
+MAPIR_KEY="$(sed -n 's/^MAPIR_API_KEY=//p' .env | tr -d '"' | tail -1)"
+[ -n "$MAPIR_KEY" ] || echo "  ⚠ MAPIR_API_KEY در $BACK/.env خالی است — جست‌وجوی آدرس کار نمی‌کند و مسافت برآوردی است"
 touch database/database.sqlite
 php artisan migrate --seed --force -q
 php artisan storage:link -q 2>/dev/null || true
@@ -101,7 +105,7 @@ say "اجرا (لاگ‌ها در $LOGS)"
 (cd "$BACK" && APP_URL="$API" php artisan serve --host=127.0.0.1 --port="$API_PORT" >"$LOGS/api.log" 2>&1) & PIDS+=($!)
 (cd "$BACK" && php artisan schedule:work >"$LOGS/schedule.log" 2>&1) & PIDS+=($!)
 for d in customer courier admin corporate; do
-  (cd "$APPS/$d" && NUXT_PUBLIC_DEMO_OTP=12345 NUXT_PUBLIC_API_BASE="$API/api/v1" npm run dev >"$LOGS/$d.log" 2>&1) & PIDS+=($!)
+  (cd "$APPS/$d" && NUXT_PUBLIC_DEMO_OTP=12345 NUXT_PUBLIC_API_BASE="$API/api/v1" NUXT_PUBLIC_MAPIR_KEY="$MAPIR_KEY" npm run dev >"$LOGS/$d.log" 2>&1) & PIDS+=($!)
 done
 
 cat <<EOF

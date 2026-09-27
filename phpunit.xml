@@ -33,6 +33,7 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="OTP_DEMO_CODE" value=""/>
         <env name="SMS_DRIVER" value="log"/>
+        <env name="MAPIR_API_KEY" value=""/>
         <env name="PAYMENT_GATEWAY" value="fake"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
     </php>
