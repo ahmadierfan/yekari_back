@@ -20,12 +20,12 @@ class ExpireOrders extends Command
         Order::where('status', 'searching')->whereNull('courier_id')
             ->where(fn ($q) => $q->whereNull('scheduled_to')->where('created_at', '<', $limit)->orWhere('scheduled_to', '<', now()))
             ->each(function (Order $o) use ($orders) {
-                $orders->cancel($o, null, 'انجام‌دهنده‌ای پیدا نشد');
-                $o->update(['status' => 'expired']);
+                $orders->expireSearching($o, 'انجام‌دهنده‌ای پیدا نشد');
                 Notifier::send($o->customer_id, 'customer', "مأموریت {$o->code} منقضی شد", 'وجه بلوکه‌شده آزاد شد.', 'clock-x', 'neutral', "/app/orders/{$o->id}");
             });
         // پیش‌نویس‌هایی که پرداختشان هیچ‌وقت کامل نشد
-        Order::where('status', 'draft')->where('created_at', '<', now()->subDay())->update(['status' => 'expired']);
+        Order::where('status', 'draft')->where('created_at', '<', now()->subDay())
+            ->each(fn (Order $o) => $orders->expireDraft($o));
 
         return self::SUCCESS;
     }

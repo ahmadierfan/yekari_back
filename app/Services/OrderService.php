@@ -211,6 +211,29 @@ class OrderService
         });
     }
 
+    /**
+     * سفارشیِ «در جست‌وجو» که پیکی برایش پیدا نشد. برخلاف `cancel()` وضعیت نهایی
+     * `expired` است، نه `cancelled` — قابل تمایز در گزارش‌ها — پس مستقیم اینجا
+     * پول را آزاد می‌کنیم و رویداد را ثبت می‌کنیم، به‌جای صدازدن `cancel()` و
+     * بازنویسی وضعیتش (که تاریخچهٔ رویداد را با وضعیت نهایی ناهم‌خوان می‌کرد).
+     */
+    public function expireSearching(Order $order, ?string $reason = null): void
+    {
+        DB::transaction(function () use ($order, $reason) {
+            $this->refundHold($order, null);
+            $order->offers()->where('status', 'pending')->update(['status' => 'expired']);
+            $order->update(['status' => 'expired']);
+            $order->logEvent('expired', null, $reason);
+        });
+    }
+
+    /** پیش‌نویسی که پرداختش هیچ‌وقت کامل نشد — هنوز پولی بلوکه نشده، فقط وضعیت و رویداد */
+    public function expireDraft(Order $order): void
+    {
+        $order->update(['status' => 'expired']);
+        $order->logEvent('expired');
+    }
+
     private function refundHold(Order $order, ?int $actorId): void
     {
         if ($order->payment_status !== 'held' || ! $order->held_amount) {
