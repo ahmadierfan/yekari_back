@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    /** همان پیش‌فرض ستون دیتابیس، تا مدل تازه‌ساخته (بدون refresh) در پاسخ API وضعیت داشته باشد */
+    protected $attributes = ['status' => 'searching', 'payment_status' => 'pending'];
+
     protected $guarded = ['id'];
 
     protected function casts(): array

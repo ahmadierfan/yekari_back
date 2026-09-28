@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ticket extends Model
 {
+    /** همان پیش‌فرض ستون دیتابیس، تا مدل تازه‌ساخته (بدون refresh) در پاسخ API وضعیت داشته باشد */
+    protected $attributes = ['status' => 'open', 'app' => 'customer'];
+
     protected $guarded = ['id'];
 
     public function user(): BelongsTo
