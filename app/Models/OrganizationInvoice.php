@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrganizationInvoice extends Model
 {
+    /** همان پیش‌فرض ستون دیتابیس، تا مدل تازه‌ساخته (بدون refresh) در پاسخ API وضعیت داشته باشد */
+    protected $attributes = ['status' => 'issued'];
+
     protected $guarded = ['id'];
 
     protected function casts(): array

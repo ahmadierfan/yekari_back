@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CourierProfile extends Model
 {
+    /** همان پیش‌فرض ستون دیتابیس، تا مدل تازه‌ساخته (بدون refresh) در پاسخ API وضعیت داشته باشد */
+    protected $attributes = ['state' => 'pending'];
+
     protected $primaryKey = 'user_id';
 
     public $incrementing = false;
