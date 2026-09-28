@@ -86,7 +86,8 @@ done
 # پورت‌ها — اگر پروژهٔ دیگری روی ۸۰۰۰ باشد، `artisan serve` بی‌صدا به ۸۰۰۱ می‌رود ولی اپ‌ها
 # همچنان به ۸۰۰۰ (همان پروژهٔ دیگر) درخواست می‌دهند و «route could not be found» می‌گیرند.
 # پس خودمان پورت آزاد را پیدا می‌کنیم و همان را صریحاً به API و اپ‌ها می‌دهیم.
-port_owner() { lsof -nP -iTCP:"$1" -sTCP:LISTEN 2>/dev/null | awk 'NR==2 {print $1" (pid "$2")"}'; }
+# lsof وقتی پورت آزاد است کد ۱ می‌دهد و با pipefail + set -e اسکریپت بی‌صدا می‌میرد؛ پس `|| true`
+port_owner() { { lsof -nP -iTCP:"$1" -sTCP:LISTEN 2>/dev/null || true; } | awk 'NR==2 {print $1" (pid "$2")"}'; }
 for p in 3500 3501 3502 3503; do
   owner="$(port_owner $p)"
   [ -z "$owner" ] || die "پورت $p را $owner گرفته است؛ ببندش (kill ${owner##*pid }) و دوباره اجرا کن"
