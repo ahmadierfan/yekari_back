@@ -45,7 +45,10 @@ done
 say "به‌روزرسانی همه به آخرین main"
 for d in design-system customer courier admin corporate back; do
   repo="$APPS/$d"
+  # package-lock.json را خود npm install در اجرای قبلی عوض می‌کند (تغییر کاربر نیست) — برگردان
+  git -C "$repo" checkout -q -- package-lock.json 2>/dev/null || true
   if [ -n "$(git -C "$repo" status --porcelain --untracked-files=no)" ]; then
+    git -C "$repo" status --short --untracked-files=no | sed 's/^/    /' >&2
     die "$d تغییر ذخیره‌نشده دارد؛ اول commit یا stash کن"
   fi
   # ریپو ممکن است چند مقصد داشته باشد (مثلاً fetch از همگیت و push به گیت‌هاب روی یک
